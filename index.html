@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#17324d"><title>Scadenze Casa & Auto</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--navy:#17324d;--blue:#27618a;--bg:#f3f6f9;--line:#dce4eb;--muted:#617386}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#172635;font:16px system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:var(--navy);color:white;padding:22px max(16px,calc((100% - 1050px)/2))}
+header h1{margin:0;font-size:24px}header p{margin:5px 0 0;color:#d7e4ef}
+main{max-width:1050px;margin:20px auto;padding:0 14px}.toolbar,.filters,.actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+button,.btn{border:0;border-radius:10px;padding:11px 15px;background:var(--blue);color:white;font-weight:650;cursor:pointer}
+button.secondary{background:#e4ebf1;color:#17324d}button.danger{background:#a83b3b}
+input,select,textarea{width:100%;padding:11px;border:1px solid #cbd6df;border-radius:9px;background:white;font:inherit}
+label{display:block;font-size:13px;font-weight:650;color:#41566a;margin:10px 0 5px}
+.panel,.item{background:white;border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
+.panel h2{font-size:18px;margin:0 0 10px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
+.full{grid-column:1/-1}.filters{margin:12px 0}.filters>*{flex:1;min-width:150px}
+.item h3{margin:0 0 6px;font-size:18px}.meta{color:var(--muted);font-size:14px;line-height:1.55}
+.pill{display:inline-block;padding:4px 9px;border-radius:30px;background:#e8f0f6;color:#214e70;font-size:12px;font-weight:700;margin:0 5px 6px 0}
+.pill.late{background:#fde8e6;color:#9b2924}.pill.soon{background:#fff1d8;color:#845500}
+.actions{margin-top:12px}.empty{text-align:center;color:var(--muted);padding:30px}
+dialog{border:0;border-radius:16px;max-width:650px;width:calc(100% - 24px);padding:20px;box-shadow:0 12px 50px #0003}
+dialog::backdrop{background:#10203099}.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.small{font-size:12px;color:var(--muted)}.filelist{font-size:13px;margin-top:8px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.full{grid-column:auto}header h1{font-size:21px}}
+@media print{header,.toolbar,.filters,.actions,.no-print{display:none!important}body{background:white}main{max-width:none;margin:0;padding:0}.panel,.item{break-inside:avoid;border:1px solid #aaa;box-shadow:none}}
+</style></head>
+<body>
+<header><h1>Scadenze Casa & Auto</h1><p>Documenti, assicurazioni, manutenzioni e promemoria in un unico posto</p></header>
+<main>
+<section class="toolbar no-print">
+<button id="addBtn">＋ Nuova scheda</button><button class="secondary" id="printBtn">Stampa / PDF</button>
+<button class="secondary" id="notifyBtn">Attiva notifiche</button><button class="secondary" id="exportBtn">Esporta backup</button>
+<label class="btn secondary" style="display:inline-flex;align-items:center;margin:0">Importa backup<input id="importFile" type="file" accept="application/json" hidden></label>
+</section>
+<section class="panel">
+<h2>Riepilogo</h2><div id="summary" class="meta">Caricamento…</div>
+</section>
+<section class="filters no-print">
+<input id="search" placeholder="Cerca titolo, targa, compagnia…">
+<select id="categoryFilter"><option value="">Tutte le categorie</option><option>Documenti</option><option>Assicurazione</option><option>Caldaia</option><option>Condizionatore</option><option>Auto</option><option>Altro</option></select>
+<select id="statusFilter"><option value="">Tutte le scadenze</option><option value="late">Scadute</option><option value="soon">Entro 30 giorni</option><option value="future">Oltre 30 giorni</option><option value="nodate">Senza data</option></select>
+</section>
+<div id="records"></div>
+<p class="small">I dati e i documenti restano su questo dispositivo/browser. Fai periodicamente un backup. Le notifiche vengono controllate quando apri l'app: non sono garantite se l'app è chiusa.</p>
+</main>
+<dialog id="editor"><form id="recordForm">
+<h2 id="formTitle">Nuova scheda</h2><input type="hidden" id="recordId">
+<div class="grid">
+<div><label>Categoria *</label><select id="category" required><option>Documenti</option><option>Assicurazione</option><option>Caldaia</option><option>Condizionatore</option><option>Auto</option><option>Altro</option></select></div>
+<div><label>Titolo / descrizione *</label><input id="title" required placeholder="Es. Carta d'identità, polizza auto…"></div>
+<div><label>Data scadenza</label><input id="dueDate" type="date"></div>
+<div><label>Promemoria (giorni prima)</label><input id="remind" type="number" min="0" max="365" value="30"></div>
+<div><label>Data ultimo intervento / emissione</label><input id="lastDate" type="date"></div>
+<div><label>Fornitore / compagnia / officina</label><input id="provider"></div>
+<div><label>Veicolo / targa / modello</label><input id="vehicle"></div>
+<div><label>Importo (€)</label><input id="amount" type="number" min="0" step="0.01"></div>
+<div class="full"><label>Note</label><textarea id="notes" rows="3"></textarea></div>
+<div class="full"><label>Scansiona e leggi il documento</label>
+<input id="attachments" type="file" accept="image/*,.pdf" capture="environment" multiple>
+<div class="small">Seleziona una foto o un PDF. La lettura automatica riconosce testo, date e alcuni dati identificativi. Controlla sempre il risultato.</div>
+<div class="actions">
+<button type="button" id="cameraBtn">📷 Apri fotocamera</button>
+<button type="button" class="secondary" id="scanBtn">🔎 Leggi documento selezionato</button>
+<span id="scanStatus" class="small" aria-live="polite"></span>
+</div>
+<div id="cameraPanel" class="panel" style="display:none;margin-top:10px">
+<video id="cameraVideo" autoplay playsinline style="width:100%;max-height:360px;background:#111;border-radius:10px"></video>
+<div class="actions"><button type="button" id="captureBtn">Scatta e leggi</button><button type="button" class="secondary" id="closeCameraBtn">Chiudi fotocamera</button></div>
+</div>
+<div id="existingFiles" class="filelist"></div>
+<label>Testo riconosciuto (puoi correggerlo)</label><textarea id="ocrText" rows="5" placeholder="Il testo letto dal documento apparirà qui…"></textarea>
+</div>
+</div>
+<div class="dialog-actions"><button type="button" class="secondary" id="cancelBtn">Annulla</button><button type="submit">Salva scheda</button></div>
+</form></dialog>
+<dialog id="confirm"><h2>Conferma operazione</h2><p id="confirmText">Vuoi procedere?</p><div class="dialog-actions"><button class="secondary" id="noBtn">Annulla</button><button id="yesBtn">Conferma</button></div></dialog>
+<script>
+const DB='scadenzeCasaAuto_v1', STORE='records'; let db, records=[], pending=null, keptFiles=[];
+const $=id=>document.getElementById(id);
+function openDB(){return new Promise((resolve,reject)=>{let r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE,{keyPath:'id'});r.onsuccess=()=>{db=r.result;resolve()};r.onerror=()=>reject(r.error)})}
+function all(){return new Promise((resolve,reject)=>{let r=db.transaction(STORE).objectStore(STORE).getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function put(x){return new Promise((resolve,reject)=>{let r=db.transaction(STORE,'readwrite').objectStore(STORE).put(x);r.onsuccess=resolve;r.onerror=()=>reject(r.error)})}
+function del(id){return new Promise((resolve,reject)=>{let r=db.transaction(STORE,'readwrite').objectStore(STORE).delete(id);r.onsuccess=resolve;r.onerror=()=>reject(r.error)})}
+const today=()=>new Date(new Date().toDateString());
+function days(d){if(!d)return null;return Math.ceil((new Date(d+'T00:00:00')-today())/86400000)}
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function status(r){let n=days(r.dueDate);return n===null?'nodate':n<0?'late':n<=30?'soon':'future'}
+function dateFmt(s){return s?new Date(s+'T00:00:00').toLocaleDateString('it-IT'):'Non indicata'}
+function render(){
+ let q=$('search').value.toLowerCase(),cat=$('categoryFilter').value,st=$('statusFilter').value;
+ let list=records.filter(r=>(!cat||r.category===cat)&&(!st||status(r)===st)&&(!q||[r.title,r.provider,r.vehicle,r.notes,r.category].join(' ').toLowerCase().includes(q)));
+ let late=records.filter(r=>status(r)==='late').length,soon=records.filter(r=>status(r)==='soon').length;
+ $('summary').innerHTML=`<b>${records.length}</b> schede · <span style="color:#a12b27"><b>${late}</b> scadute</span> · <span style="color:#8a5b00"><b>${soon}</b> entro 30 giorni</span>`;
+ $('records').innerHTML=list.length?list.sort((a,b)=>(a.dueDate||'9999').localeCompare(b.dueDate||'9999')).map(r=>{
+ let s=status(r),cls=s==='late'?'late':s==='soon'?'soon':'',label=s==='late'?'SCADUTA':s==='soon'?'IN SCADENZA':s==='future'?'IN REGOLA':'SENZA DATA';
+ return `<article class="item"><span class="pill">${esc(r.category)}</span><span class="pill ${cls}">${label}</span><h3>${esc(r.title)}</h3><div class="meta">Scadenza: <b>${dateFmt(r.dueDate)}</b> · Promemoria: ${r.remind??30} giorni prima<br>${r.provider?'Riferimento: '+esc(r.provider)+'<br>':''}${r.vehicle?'Veicolo: '+esc(r.vehicle)+'<br>':''}${r.lastDate?'Ultimo intervento/emissione: '+dateFmt(r.lastDate)+'<br>':''}${r.amount?'Importo: € '+Number(r.amount).toFixed(2)+'<br>':''}${r.notes?esc(r.notes)+'<br>':''}${(r.files||[]).length?'Allegati: '+r.files.length:''}</div><div class="actions no-print"><button class="secondary" onclick="editRecord('${r.id}')">Modifica</button><button class="secondary" onclick="viewFiles('${r.id}')">Apri allegati</button><button class="danger" onclick="deleteRecord('${r.id}')">Elimina</button></div></article>`
+ }).join(''):'<div class="empty">Nessuna scheda trovata. Premi “Nuova scheda” per iniziare.</div>';
+}
+function ask(text,action){$('confirmText').textContent=text;pending=action;$('confirm').showModal()}
+$('yesBtn').onclick=async()=>{let a=pending;pending=null;$('confirm').close();if(a)await a()};
+$('noBtn').onclick=()=>{$('confirm').close();pending=null};
+function resetForm(){ $('recordForm').reset();$('recordId').value='';$('remind').value=30;keptFiles=[];$('existingFiles').textContent='';$('formTitle').textContent='Nuova scheda';}
+function newRecord(){resetForm();$('editor').showModal()}
+function editRecord(id){let r=records.find(x=>x.id===id);if(!r)return;resetForm();$('formTitle').textContent='Modifica scheda';$('recordId').value=r.id;
+['category','title','dueDate','remind','lastDate','provider','vehicle','amount','notes'].forEach(k=>$(k).value=r[k]??'');
+keptFiles=r.files||[];$('existingFiles').textContent=keptFiles.map(f=>f.name).join(', ')||'Nessun allegato';$('editor').showModal()}
+function fileData(f){return new Promise((res,rej)=>{let rd=new FileReader();rd.onload=()=>res({name:f.name,type:f.type,data:rd.result});rd.onerror=rej;rd.readAsDataURL(f)})}
+async function loadScript(src){return new Promise((resolve,reject)=>{let old=[...document.scripts].find(x=>x.src===src);if(old){resolve();return}let x=document.createElement('script');x.src=src;x.onload=resolve;x.onerror=()=>reject(new Error('Impossibile caricare il componente di lettura. Controlla la connessione internet.'));document.head.appendChild(x)})}
+function extractImportant(text){
+ const clean=text.replace(/\r/g,' '), low=clean.toLowerCase();
+ const dates=[]; const re=/\b(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})\b|\b(20\d{2})-(\d{2})-(\d{2})\b/g;let m;
+ while((m=re.exec(clean))!==null){let iso;if(m[1]){let y=m[3].length===2?'20'+m[3]:m[3];iso=`${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`}else iso=`${m[4]}-${m[5]}-${m[6]}`;if(!dates.includes(iso))dates.push(iso)}
+ const expLine=clean.split(/\n/).find(x=>/scadenza|scade|valido fino|validità fino|expires|expiry|da rinnovare/i.test(x));
+ let due='';if(expLine){let mm=expLine.match(/(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);if(mm){let y=mm[3].length===2?'20'+mm[3]:mm[3];due=`${y}-${mm[2].padStart(2,'0')}-${mm[1].padStart(2,'0')}`}else{let iso=expLine.match(/(20\d{2})-(\d{2})-(\d{2})/);if(iso)due=iso[0]}}
+ if(!due&&dates.length)due=dates[dates.length-1];
+ let kind='Documento';if(/carta d.?identit|identity card|c\.i\./i.test(low))kind='Carta d’identità';else if(/passaporto|passport/i.test(low))kind='Passaporto';else if(/patente|driving licence|driver.?s license/i.test(low))kind='Patente';else if(/tessera sanitaria/i.test(low))kind='Tessera sanitaria';else if(/certificato|attestato/i.test(low))kind='Certificato';
+ let numberLine=clean.split(/\n/).find(x=>/numero|n\.|document no|document number|seriale/i.test(x));
+ let issuerLine=clean.split(/\n/).find(x=>/comune|ministero|agenzia|rilasciat[oa] da|ente emittente/i.test(x));
+ return {kind,due,dates,numberLine:numberLine?.trim()||'',issuerLine:issuerLine?.trim()||''};
+}
+let cameraStream=null;
+async function openCamera(){
+ if(!navigator.mediaDevices?.getUserMedia){$('scanStatus').textContent='Fotocamera non disponibile. Apri l’app da un indirizzo HTTPS oppure usa il selettore documenti.';return;}
+ try{cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});$('cameraVideo').srcObject=cameraStream;$('cameraPanel').style.display='block';$('scanStatus').textContent='Inquadra il documento, tienilo ben illuminato e premi “Scatta e leggi”.';}
+ catch(err){$('scanStatus').textContent='Non riesco ad aprire la fotocamera. Consenti l’accesso alla fotocamera nel browser e riprova.';}
+}
+function closeCamera(){if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null}$('cameraVideo').srcObject=null;$('cameraPanel').style.display='none';}
+async function captureAndRead(){const video=$('cameraVideo');if(!video.videoWidth){$('scanStatus').textContent='Attendi che la fotocamera si avvii.';return;}const canvas=document.createElement('canvas');canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.92));const shot=new File([blob],'scansione-'+Date.now()+'.jpg',{type:'image/jpeg'});const transfer=new DataTransfer();transfer.items.add(shot);$('attachments').files=transfer.files;closeCamera();$('scanStatus').textContent='Foto acquisita: avvio lettura del testo…';await scanSelected();}
+async function scanSelected(){const files=[...$('attachments').files];if(!files.length){$('scanStatus').textContent='Prima seleziona o fotografa un documento.';return}
+ $('scanBtn').disabled=true;$('scanStatus').textContent='Preparazione lettura…';
+ try{
+  await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+  let worker=await Tesseract.createWorker('ita');let combined='';
+  for(const f of files){$('scanStatus').textContent='Lettura: '+f.name;
+   if(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')){
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const data=await f.arrayBuffer();const pdf=await pdfjsLib.getDocument({data}).promise;
+    for(let pg=1;pg<=Math.min(pdf.numPages,3);pg++){const page=await pdf.getPage(pg);const vp=page.getViewport({scale:1.7});const canvas=document.createElement('canvas');canvas.width=vp.width;canvas.height=vp.height;await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;const out=await worker.recognize(canvas);combined+='\n'+out.data.text}
+   }else{const out=await worker.recognize(f);combined+='\n'+out.data.text}
+  }
+  await worker.terminate();$('ocrText').value=combined.trim();const x=extractImportant(combined);
+  if(!$('title').value||$('title').value==='')$('title').value=x.kind;
+  if(x.due&&!$('dueDate').value)$('dueDate').value=x.due;
+  if(x.issuerLine&&!$('provider').value)$('provider').value=x.issuerLine;
+  let details=[];if(x.numberLine)details.push('Dato identificativo rilevato: '+x.numberLine);if(x.dates.length)details.push('Date rilevate: '+x.dates.map(d=>new Date(d+'T00:00:00').toLocaleDateString('it-IT')).join(', '));
+  if(details.length){$('notes').value=[$('notes').value,...details].filter(Boolean).join('\n')}
+  $('scanStatus').textContent='Lettura completata. Verifica titolo e date prima di salvare.';
+ }catch(err){$('scanStatus').textContent=err.message||'Errore durante la lettura.'}
+ finally{$('scanBtn').disabled=false}
+}
+$('scanBtn').onclick=scanSelected;$('cameraBtn').onclick=openCamera;$('captureBtn').onclick=captureAndRead;$('closeCameraBtn').onclick=closeCamera;
+$('recordForm').onsubmit=async e=>{e.preventDefault();let id=$('recordId').value||crypto.randomUUID();let existing=records.find(x=>x.id===id);
+let files=[...keptFiles,...await Promise.all([...$('attachments').files].map(fileData))];
+let r={id,category:$('category').value,title:$('title').value.trim(),dueDate:$('dueDate').value,remind:Number($('remind').value||0),lastDate:$('lastDate').value,provider:$('provider').value.trim(),vehicle:$('vehicle').value.trim(),amount:$('amount').value,notes:$('notes').value.trim(),files};
+ask(existing?'Confermi il salvataggio delle modifiche a questa scheda?':'Confermi il salvataggio della nuova scheda?',async()=>{await put(r);$('editor').close();await refresh()});
+};
+async function deleteRecord(id){let r=records.find(x=>x.id===id);ask(`Confermi la cancellazione di “${r?.title||'questa scheda'}”?`,async()=>{await del(id);await refresh()})}
+async function viewFiles(id){let r=records.find(x=>x.id===id);if(!r?.files?.length){alert('Nessun allegato presente.');return}for(let f of r.files){let w=window.open();if(!w){alert('Consenti i popup per aprire gli allegati.');return}if(f.type.startsWith('image/'))w.document.write(`<img src="${f.data}" style="max-width:100%">`);else w.location.href=f.data}}
+async function refresh(){records=await all();render();checkReminders()}
+async function checkReminders(){if(!('Notification'in window)||Notification.permission!=='granted')return;let now=today();for(let r of records){let n=days(r.dueDate);if(n!==null&&n>=0&&n<=Number(r.remind||0)){let key='rem_'+r.id+'_'+r.dueDate;if(!localStorage.getItem(key)){new Notification('Promemoria: '+r.title,{body:n===0?'Scade oggi':`Scade tra ${n} giorni`});localStorage.setItem(key,'1')}}}}
+$('addBtn').onclick=newRecord;$('cancelBtn').onclick=()=>$('editor').close();$('printBtn').onclick=()=>window.print();
+$('notifyBtn').onclick=async()=>{if(!('Notification'in window)){alert('Notifiche non supportate da questo browser.');return}let p=await Notification.requestPermission();alert(p==='granted'?'Notifiche attivate. Saranno controllate quando apri l’app.':'Permesso notifiche non concesso.')};
+['search','categoryFilter','statusFilter'].forEach(id=>$(id).addEventListener('input',render));
+$('exportBtn').onclick=async()=>{let data=JSON.stringify({app:'Scadenze Casa & Auto',version:1,records:await all()});let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='backup-scadenze.json';a.click();URL.revokeObjectURL(a.href)};
+$('importFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let obj=JSON.parse(await f.text());if(!Array.isArray(obj.records))throw 0;ask('Importare il backup? Le schede con lo stesso identificativo verranno sostituite.',async()=>{for(let r of obj.records)await put(r);await refresh()})}catch{alert('File di backup non valido.')}e.target.value=''};
+openDB().then(refresh);
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script></body></html>

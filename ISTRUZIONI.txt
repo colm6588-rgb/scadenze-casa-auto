@@ -1,0 +1,5 @@
+AGGIORNAMENTO SCANNER CON FOTOCAMERA
+- Apri l'app da un sito HTTPS per usare la fotocamera direttamente dal browser. Il doppio clic su index.html (file://) può bloccare l'accesso alla fotocamera.
+- Premi Nuova scheda > Apri fotocamera > consenti l'accesso > inquadra > Scatta e leggi.
+- L'app acquisisce la foto, la allega alla scheda e avvia la lettura OCR. Verifica sempre i dati estratti.
+- Il pulsante Leggi documento selezionato resta disponibile per file già presenti.
