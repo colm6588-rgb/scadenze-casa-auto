@@ -1,171 +1,105 @@
 <!doctype html>
 <html lang="it">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#17324d"><title>Scadenze Casa & Auto</title>
-<link rel="manifest" href="manifest.webmanifest">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#245b78">
+<title>Scadenze Casa & Auto</title>
 <style>
-:root{--navy:#17324d;--blue:#27618a;--bg:#f3f6f9;--line:#dce4eb;--muted:#617386}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#172635;font:16px system-ui,-apple-system,Segoe UI,sans-serif}
-header{background:var(--navy);color:white;padding:22px max(16px,calc((100% - 1050px)/2))}
-header h1{margin:0;font-size:24px}header p{margin:5px 0 0;color:#d7e4ef}
-main{max-width:1050px;margin:20px auto;padding:0 14px}.toolbar,.filters,.actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
-button,.btn{border:0;border-radius:10px;padding:11px 15px;background:var(--blue);color:white;font-weight:650;cursor:pointer}
-button.secondary{background:#e4ebf1;color:#17324d}button.danger{background:#a83b3b}
-input,select,textarea{width:100%;padding:11px;border:1px solid #cbd6df;border-radius:9px;background:white;font:inherit}
-label{display:block;font-size:13px;font-weight:650;color:#41566a;margin:10px 0 5px}
-.panel,.item{background:white;border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
-.panel h2{font-size:18px;margin:0 0 10px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
-.full{grid-column:1/-1}.filters{margin:12px 0}.filters>*{flex:1;min-width:150px}
-.item h3{margin:0 0 6px;font-size:18px}.meta{color:var(--muted);font-size:14px;line-height:1.55}
-.pill{display:inline-block;padding:4px 9px;border-radius:30px;background:#e8f0f6;color:#214e70;font-size:12px;font-weight:700;margin:0 5px 6px 0}
-.pill.late{background:#fde8e6;color:#9b2924}.pill.soon{background:#fff1d8;color:#845500}
-.actions{margin-top:12px}.empty{text-align:center;color:var(--muted);padding:30px}
-dialog{border:0;border-radius:16px;max-width:650px;width:calc(100% - 24px);padding:20px;box-shadow:0 12px 50px #0003}
-dialog::backdrop{background:#10203099}.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
-.small{font-size:12px;color:var(--muted)}.filelist{font-size:13px;margin-top:8px}
-@media(max-width:600px){.grid{grid-template-columns:1fr}.full{grid-column:auto}header h1{font-size:21px}}
-@media print{header,.toolbar,.filters,.actions,.no-print{display:none!important}body{background:white}main{max-width:none;margin:0;padding:0}.panel,.item{break-inside:avoid;border:1px solid #aaa;box-shadow:none}}
-</style></head>
+:root{font-family:Arial,Helvetica,sans-serif;color:#20313d;background:#f3f6f8}
+*{box-sizing:border-box}body{margin:0}header{background:#245b78;color:white;padding:22px 16px}
+header h1{margin:0 0 6px;font-size:25px}header p{margin:0;opacity:.9}
+main{max-width:900px;margin:18px auto;padding:0 12px 40px}
+.panel{background:white;border-radius:14px;padding:16px;margin:14px 0;box-shadow:0 2px 10px #17384a12}
+h2{font-size:19px;margin:0 0 14px}label{display:block;font-weight:600;margin:11px 0 5px}
+input,select,textarea,button{font:inherit}input,select,textarea{width:100%;padding:11px;border:1px solid #c8d2d9;border-radius:8px;background:white}
+textarea{min-height:80px;resize:vertical}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+button{border:0;border-radius:9px;padding:11px 15px;background:#245b78;color:white;font-weight:600;cursor:pointer;margin:7px 5px 0 0}
+button.secondary{background:#e7eef2;color:#234454}button.danger{background:#a33b3b}
+.actions{display:flex;flex-wrap:wrap;gap:5px}.muted{color:#60727d;font-size:13px}.notice{background:#edf5f8;padding:10px;border-radius:8px;font-size:14px}
+.record{border:1px solid #dce4e9;border-radius:10px;padding:12px;margin:10px 0}
+.record h3{margin:0 0 6px;font-size:17px}.record p{margin:5px 0}
+#progress{height:8px;background:#e4eaee;border-radius:8px;overflow:hidden;margin:10px 0}
+#bar{height:100%;width:0;background:#27845c;transition:width .2s}
+#ocrText{min-height:100px}.hidden{display:none}.tag{display:inline-block;background:#e7f1f5;border-radius:20px;padding:3px 8px;font-size:12px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}header h1{font-size:22px}}
+</style>
+</head>
 <body>
-<header><h1>Scadenze Casa & Auto</h1><p>Documenti, assicurazioni, manutenzioni e promemoria in un unico posto</p></header>
+<header><h1>Scadenze Casa & Auto</h1><p>Documenti, manutenzioni e promemoria in un unico posto</p></header>
 <main>
-<section class="toolbar no-print">
-<button id="addBtn">＋ Nuova scheda</button><button class="secondary" id="printBtn">Stampa / PDF</button>
-<button class="secondary" id="notifyBtn">Attiva notifiche</button><button class="secondary" id="exportBtn">Esporta backup</button>
-<label class="btn secondary" style="display:inline-flex;align-items:center;margin:0">Importa backup<input id="importFile" type="file" accept="application/json" hidden></label>
-</section>
 <section class="panel">
-<h2>Riepilogo</h2><div id="summary" class="meta">Caricamento…</div>
+<h2>Leggi un documento</h2>
+<p class="muted">Scegli una foto o un PDF. La lettura viene eseguita nel browser: il documento non viene caricato su un mio server.</p>
+<label for="documentFile">Foto o PDF</label>
+<input id="documentFile" type="file" accept="image/*,.pdf" capture="environment">
+<div class="actions"><button id="readBtn" type="button">Leggi documento</button><button id="clearOcr" class="secondary" type="button">Azzera</button></div>
+<div id="progress" class="hidden"><div id="bar"></div></div>
+<p id="ocrStatus" class="muted" aria-live="polite"></p>
+<label for="ocrText">Testo riconosciuto (puoi correggerlo)</label>
+<textarea id="ocrText" placeholder="Qui comparirà il testo letto dal documento..."></textarea>
+<p class="muted">La lettura automatica può sbagliare: controlla sempre date e importi prima di salvare.</p>
 </section>
-<section class="filters no-print">
-<input id="search" placeholder="Cerca titolo, targa, compagnia…">
-<select id="categoryFilter"><option value="">Tutte le categorie</option><option>Documenti</option><option>Assicurazione</option><option>Caldaia</option><option>Condizionatore</option><option>Auto</option><option>Altro</option></select>
-<select id="statusFilter"><option value="">Tutte le scadenze</option><option value="late">Scadute</option><option value="soon">Entro 30 giorni</option><option value="future">Oltre 30 giorni</option><option value="nodate">Senza data</option></select>
-</section>
-<div id="records"></div>
-<p class="small">I dati e i documenti restano su questo dispositivo/browser. Fai periodicamente un backup. Le notifiche vengono controllate quando apri l'app: non sono garantite se l'app è chiusa.</p>
-</main>
-<dialog id="editor"><form id="recordForm">
-<h2 id="formTitle">Nuova scheda</h2><input type="hidden" id="recordId">
+
+<section class="panel">
+<h2 id="formTitle">Aggiungi una scadenza</h2>
+<form id="recordForm">
+<input type="hidden" id="recordId">
 <div class="grid">
-<div><label>Categoria *</label><select id="category" required><option>Documenti</option><option>Assicurazione</option><option>Caldaia</option><option>Condizionatore</option><option>Auto</option><option>Altro</option></select></div>
-<div><label>Titolo / descrizione *</label><input id="title" required placeholder="Es. Carta d'identità, polizza auto…"></div>
-<div><label>Data scadenza</label><input id="dueDate" type="date"></div>
-<div><label>Promemoria (giorni prima)</label><input id="remind" type="number" min="0" max="365" value="30"></div>
-<div><label>Data ultimo intervento / emissione</label><input id="lastDate" type="date"></div>
-<div><label>Fornitore / compagnia / officina</label><input id="provider"></div>
-<div><label>Veicolo / targa / modello</label><input id="vehicle"></div>
-<div><label>Importo (€)</label><input id="amount" type="number" min="0" step="0.01"></div>
-<div class="full"><label>Note</label><textarea id="notes" rows="3"></textarea></div>
-<div class="full"><label>Scansiona e leggi il documento</label>
-<input id="attachments" type="file" accept="image/*,.pdf" capture="environment" multiple>
-<div class="small">Seleziona una foto o un PDF. La lettura automatica riconosce testo, date e alcuni dati identificativi. Controlla sempre il risultato.</div>
-<div class="actions">
-<button type="button" id="cameraBtn">📷 Apri fotocamera</button>
-<button type="button" class="secondary" id="scanBtn">🔎 Leggi documento selezionato</button>
-<span id="scanStatus" class="small" aria-live="polite"></span>
+<div><label for="category">Categoria</label><select id="category"><option>Documenti</option><option>Assicurazione</option><option>Caldaia</option><option>Condizionatore</option><option>Auto</option><option>Altro</option></select></div>
+<div><label for="title">Titolo</label><input id="title" required placeholder="Es. Assicurazione auto"></div>
+<div><label for="dueDate">Data di scadenza</label><input id="dueDate" type="date"></div>
+<div><label for="reminder">Promemoria (giorni prima)</label><input id="reminder" type="number" min="0" value="30"></div>
+<div><label for="issueDate">Data emissione/intervento</label><input id="issueDate" type="date"></div>
+<div><label for="supplier">Ente / fornitore</label><input id="supplier" placeholder="Es. Comune, compagnia..."></div>
+<div><label for="vehicle">Veicolo / targa</label><input id="vehicle"></div>
+<div><label for="amount">Importo (€)</label><input id="amount" type="number" min="0" step="0.01"></div>
 </div>
-<div id="cameraPanel" class="panel" style="display:none;margin-top:10px">
-<video id="cameraVideo" autoplay playsinline style="width:100%;max-height:360px;background:#111;border-radius:10px"></video>
-<div class="actions"><button type="button" id="captureBtn">Scatta e leggi</button><button type="button" class="secondary" id="closeCameraBtn">Chiudi fotocamera</button></div>
-</div>
-<div id="existingFiles" class="filelist"></div>
-<label>Testo riconosciuto (puoi correggerlo)</label><textarea id="ocrText" rows="5" placeholder="Il testo letto dal documento apparirà qui…"></textarea>
-</div>
-</div>
-<div class="dialog-actions"><button type="button" class="secondary" id="cancelBtn">Annulla</button><button type="submit">Salva scheda</button></div>
-</form></dialog>
-<dialog id="confirm"><h2>Conferma operazione</h2><p id="confirmText">Vuoi procedere?</p><div class="dialog-actions"><button class="secondary" id="noBtn">Annulla</button><button id="yesBtn">Conferma</button></div></dialog>
+<label for="notes">Note</label><textarea id="notes" placeholder="Annotazioni utili"></textarea>
+<label for="attachment">Allega foto o PDF (facoltativo)</label><input id="attachment" type="file" accept="image/*,.pdf">
+<div class="actions"><button type="submit">Salva scheda</button><button type="button" class="secondary" id="resetBtn">Nuova scheda</button></div>
+</form>
+</section>
+
+<section class="panel">
+<h2>Le tue scadenze</h2>
+<div class="actions"><button id="exportBtn" class="secondary" type="button">Esporta backup</button><button id="importBtn" class="secondary" type="button">Ripristina backup</button><input id="backupFile" class="hidden" type="file" accept="application/json"></div>
+<div id="records"><p class="muted">Nessuna scadenza salvata.</p></div>
+</section>
+<p class="notice">I dati e gli allegati sono conservati in questo browser e su questo dispositivo. Esporta periodicamente un backup per non perderli. Per usare la lettura OCR occorre una connessione internet per caricare le librerie; i documenti restano sul dispositivo.</p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-const DB='scadenzeCasaAuto_v1', STORE='records'; let db, records=[], pending=null, keptFiles=[];
-const $=id=>document.getElementById(id);
-function openDB(){return new Promise((resolve,reject)=>{let r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE,{keyPath:'id'});r.onsuccess=()=>{db=r.result;resolve()};r.onerror=()=>reject(r.error)})}
-function all(){return new Promise((resolve,reject)=>{let r=db.transaction(STORE).objectStore(STORE).getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
-function put(x){return new Promise((resolve,reject)=>{let r=db.transaction(STORE,'readwrite').objectStore(STORE).put(x);r.onsuccess=resolve;r.onerror=()=>reject(r.error)})}
-function del(id){return new Promise((resolve,reject)=>{let r=db.transaction(STORE,'readwrite').objectStore(STORE).delete(id);r.onsuccess=resolve;r.onerror=()=>reject(r.error)})}
-const today=()=>new Date(new Date().toDateString());
-function days(d){if(!d)return null;return Math.ceil((new Date(d+'T00:00:00')-today())/86400000)}
-function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function status(r){let n=days(r.dueDate);return n===null?'nodate':n<0?'late':n<=30?'soon':'future'}
-function dateFmt(s){return s?new Date(s+'T00:00:00').toLocaleDateString('it-IT'):'Non indicata'}
-function render(){
- let q=$('search').value.toLowerCase(),cat=$('categoryFilter').value,st=$('statusFilter').value;
- let list=records.filter(r=>(!cat||r.category===cat)&&(!st||status(r)===st)&&(!q||[r.title,r.provider,r.vehicle,r.notes,r.category].join(' ').toLowerCase().includes(q)));
- let late=records.filter(r=>status(r)==='late').length,soon=records.filter(r=>status(r)==='soon').length;
- $('summary').innerHTML=`<b>${records.length}</b> schede · <span style="color:#a12b27"><b>${late}</b> scadute</span> · <span style="color:#8a5b00"><b>${soon}</b> entro 30 giorni</span>`;
- $('records').innerHTML=list.length?list.sort((a,b)=>(a.dueDate||'9999').localeCompare(b.dueDate||'9999')).map(r=>{
- let s=status(r),cls=s==='late'?'late':s==='soon'?'soon':'',label=s==='late'?'SCADUTA':s==='soon'?'IN SCADENZA':s==='future'?'IN REGOLA':'SENZA DATA';
- return `<article class="item"><span class="pill">${esc(r.category)}</span><span class="pill ${cls}">${label}</span><h3>${esc(r.title)}</h3><div class="meta">Scadenza: <b>${dateFmt(r.dueDate)}</b> · Promemoria: ${r.remind??30} giorni prima<br>${r.provider?'Riferimento: '+esc(r.provider)+'<br>':''}${r.vehicle?'Veicolo: '+esc(r.vehicle)+'<br>':''}${r.lastDate?'Ultimo intervento/emissione: '+dateFmt(r.lastDate)+'<br>':''}${r.amount?'Importo: € '+Number(r.amount).toFixed(2)+'<br>':''}${r.notes?esc(r.notes)+'<br>':''}${(r.files||[]).length?'Allegati: '+r.files.length:''}</div><div class="actions no-print"><button class="secondary" onclick="editRecord('${r.id}')">Modifica</button><button class="secondary" onclick="viewFiles('${r.id}')">Apri allegati</button><button class="danger" onclick="deleteRecord('${r.id}')">Elimina</button></div></article>`
- }).join(''):'<div class="empty">Nessuna scheda trovata. Premi “Nuova scheda” per iniziare.</div>';
-}
-function ask(text,action){$('confirmText').textContent=text;pending=action;$('confirm').showModal()}
-$('yesBtn').onclick=async()=>{let a=pending;pending=null;$('confirm').close();if(a)await a()};
-$('noBtn').onclick=()=>{$('confirm').close();pending=null};
-function resetForm(){ $('recordForm').reset();$('recordId').value='';$('remind').value=30;keptFiles=[];$('existingFiles').textContent='';$('formTitle').textContent='Nuova scheda';}
-function newRecord(){resetForm();$('editor').showModal()}
-function editRecord(id){let r=records.find(x=>x.id===id);if(!r)return;resetForm();$('formTitle').textContent='Modifica scheda';$('recordId').value=r.id;
-['category','title','dueDate','remind','lastDate','provider','vehicle','amount','notes'].forEach(k=>$(k).value=r[k]??'');
-keptFiles=r.files||[];$('existingFiles').textContent=keptFiles.map(f=>f.name).join(', ')||'Nessun allegato';$('editor').showModal()}
-function fileData(f){return new Promise((res,rej)=>{let rd=new FileReader();rd.onload=()=>res({name:f.name,type:f.type,data:rd.result});rd.onerror=rej;rd.readAsDataURL(f)})}
-async function loadScript(src){return new Promise((resolve,reject)=>{let old=[...document.scripts].find(x=>x.src===src);if(old){resolve();return}let x=document.createElement('script');x.src=src;x.onload=resolve;x.onerror=()=>reject(new Error('Impossibile caricare il componente di lettura. Controlla la connessione internet.'));document.head.appendChild(x)})}
-function extractImportant(text){
- const clean=text.replace(/\r/g,' '), low=clean.toLowerCase();
- const dates=[]; const re=/\b(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})\b|\b(20\d{2})-(\d{2})-(\d{2})\b/g;let m;
- while((m=re.exec(clean))!==null){let iso;if(m[1]){let y=m[3].length===2?'20'+m[3]:m[3];iso=`${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`}else iso=`${m[4]}-${m[5]}-${m[6]}`;if(!dates.includes(iso))dates.push(iso)}
- const expLine=clean.split(/\n/).find(x=>/scadenza|scade|valido fino|validità fino|expires|expiry|da rinnovare/i.test(x));
- let due='';if(expLine){let mm=expLine.match(/(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);if(mm){let y=mm[3].length===2?'20'+mm[3]:mm[3];due=`${y}-${mm[2].padStart(2,'0')}-${mm[1].padStart(2,'0')}`}else{let iso=expLine.match(/(20\d{2})-(\d{2})-(\d{2})/);if(iso)due=iso[0]}}
- if(!due&&dates.length)due=dates[dates.length-1];
- let kind='Documento';if(/carta d.?identit|identity card|c\.i\./i.test(low))kind='Carta d’identità';else if(/passaporto|passport/i.test(low))kind='Passaporto';else if(/patente|driving licence|driver.?s license/i.test(low))kind='Patente';else if(/tessera sanitaria/i.test(low))kind='Tessera sanitaria';else if(/certificato|attestato/i.test(low))kind='Certificato';
- let numberLine=clean.split(/\n/).find(x=>/numero|n\.|document no|document number|seriale/i.test(x));
- let issuerLine=clean.split(/\n/).find(x=>/comune|ministero|agenzia|rilasciat[oa] da|ente emittente/i.test(x));
- return {kind,due,dates,numberLine:numberLine?.trim()||'',issuerLine:issuerLine?.trim()||''};
-}
-let cameraStream=null;
-async function openCamera(){
- if(!navigator.mediaDevices?.getUserMedia){$('scanStatus').textContent='Fotocamera non disponibile. Apri l’app da un indirizzo HTTPS oppure usa il selettore documenti.';return;}
- try{cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});$('cameraVideo').srcObject=cameraStream;$('cameraPanel').style.display='block';$('scanStatus').textContent='Inquadra il documento, tienilo ben illuminato e premi “Scatta e leggi”.';}
- catch(err){$('scanStatus').textContent='Non riesco ad aprire la fotocamera. Consenti l’accesso alla fotocamera nel browser e riprova.';}
-}
-function closeCamera(){if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null}$('cameraVideo').srcObject=null;$('cameraPanel').style.display='none';}
-async function captureAndRead(){const video=$('cameraVideo');if(!video.videoWidth){$('scanStatus').textContent='Attendi che la fotocamera si avvii.';return;}const canvas=document.createElement('canvas');canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.92));const shot=new File([blob],'scansione-'+Date.now()+'.jpg',{type:'image/jpeg'});const transfer=new DataTransfer();transfer.items.add(shot);$('attachments').files=transfer.files;closeCamera();$('scanStatus').textContent='Foto acquisita: avvio lettura del testo…';await scanSelected();}
-async function scanSelected(){const files=[...$('attachments').files];if(!files.length){$('scanStatus').textContent='Prima seleziona o fotografa un documento.';return}
- $('scanBtn').disabled=true;$('scanStatus').textContent='Preparazione lettura…';
- try{
-  await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
-  let worker=await Tesseract.createWorker('ita');let combined='';
-  for(const f of files){$('scanStatus').textContent='Lettura: '+f.name;
-   if(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')){
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    const data=await f.arrayBuffer();const pdf=await pdfjsLib.getDocument({data}).promise;
-    for(let pg=1;pg<=Math.min(pdf.numPages,3);pg++){const page=await pdf.getPage(pg);const vp=page.getViewport({scale:1.7});const canvas=document.createElement('canvas');canvas.width=vp.width;canvas.height=vp.height;await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;const out=await worker.recognize(canvas);combined+='\n'+out.data.text}
-   }else{const out=await worker.recognize(f);combined+='\n'+out.data.text}
-  }
-  await worker.terminate();$('ocrText').value=combined.trim();const x=extractImportant(combined);
-  if(!$('title').value||$('title').value==='')$('title').value=x.kind;
-  if(x.due&&!$('dueDate').value)$('dueDate').value=x.due;
-  if(x.issuerLine&&!$('provider').value)$('provider').value=x.issuerLine;
-  let details=[];if(x.numberLine)details.push('Dato identificativo rilevato: '+x.numberLine);if(x.dates.length)details.push('Date rilevate: '+x.dates.map(d=>new Date(d+'T00:00:00').toLocaleDateString('it-IT')).join(', '));
-  if(details.length){$('notes').value=[$('notes').value,...details].filter(Boolean).join('\n')}
-  $('scanStatus').textContent='Lettura completata. Verifica titolo e date prima di salvare.';
- }catch(err){$('scanStatus').textContent=err.message||'Errore durante la lettura.'}
- finally{$('scanBtn').disabled=false}
-}
-$('scanBtn').onclick=scanSelected;$('cameraBtn').onclick=openCamera;$('captureBtn').onclick=captureAndRead;$('closeCameraBtn').onclick=closeCamera;
-$('recordForm').onsubmit=async e=>{e.preventDefault();let id=$('recordId').value||crypto.randomUUID();let existing=records.find(x=>x.id===id);
-let files=[...keptFiles,...await Promise.all([...$('attachments').files].map(fileData))];
-let r={id,category:$('category').value,title:$('title').value.trim(),dueDate:$('dueDate').value,remind:Number($('remind').value||0),lastDate:$('lastDate').value,provider:$('provider').value.trim(),vehicle:$('vehicle').value.trim(),amount:$('amount').value,notes:$('notes').value.trim(),files};
-ask(existing?'Confermi il salvataggio delle modifiche a questa scheda?':'Confermi il salvataggio della nuova scheda?',async()=>{await put(r);$('editor').close();await refresh()});
-};
-async function deleteRecord(id){let r=records.find(x=>x.id===id);ask(`Confermi la cancellazione di “${r?.title||'questa scheda'}”?`,async()=>{await del(id);await refresh()})}
-async function viewFiles(id){let r=records.find(x=>x.id===id);if(!r?.files?.length){alert('Nessun allegato presente.');return}for(let f of r.files){let w=window.open();if(!w){alert('Consenti i popup per aprire gli allegati.');return}if(f.type.startsWith('image/'))w.document.write(`<img src="${f.data}" style="max-width:100%">`);else w.location.href=f.data}}
-async function refresh(){records=await all();render();checkReminders()}
-async function checkReminders(){if(!('Notification'in window)||Notification.permission!=='granted')return;let now=today();for(let r of records){let n=days(r.dueDate);if(n!==null&&n>=0&&n<=Number(r.remind||0)){let key='rem_'+r.id+'_'+r.dueDate;if(!localStorage.getItem(key)){new Notification('Promemoria: '+r.title,{body:n===0?'Scade oggi':`Scade tra ${n} giorni`});localStorage.setItem(key,'1')}}}}
-$('addBtn').onclick=newRecord;$('cancelBtn').onclick=()=>$('editor').close();$('printBtn').onclick=()=>window.print();
-$('notifyBtn').onclick=async()=>{if(!('Notification'in window)){alert('Notifiche non supportate da questo browser.');return}let p=await Notification.requestPermission();alert(p==='granted'?'Notifiche attivate. Saranno controllate quando apri l’app.':'Permesso notifiche non concesso.')};
-['search','categoryFilter','statusFilter'].forEach(id=>$(id).addEventListener('input',render));
-$('exportBtn').onclick=async()=>{let data=JSON.stringify({app:'Scadenze Casa & Auto',version:1,records:await all()});let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='backup-scadenze.json';a.click();URL.revokeObjectURL(a.href)};
-$('importFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let obj=JSON.parse(await f.text());if(!Array.isArray(obj.records))throw 0;ask('Importare il backup? Le schede con lo stesso identificativo verranno sostituite.',async()=>{for(let r of obj.records)await put(r);await refresh()})}catch{alert('File di backup non valido.')}e.target.value=''};
-openDB().then(refresh);
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-</script></body></html>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const DB_NAME='scadenzeCasaAuto_v1', STORE='records';
+let db;
+function openDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(STORE))req.result.createObjectStore(STORE,{keyPath:'id'});};req.onsuccess=()=>{db=req.result;resolve(db)};req.onerror=()=>reject(req.error)})}
+function all(){return new Promise((res,rej)=>{const r=db.transaction(STORE).objectStore(STORE).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}
+function put(item){return new Promise((res,rej)=>{const r=db.transaction(STORE,'readwrite').objectStore(STORE).put(item);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
+function del(id){return new Promise((res,rej)=>{const r=db.transaction(STORE,'readwrite').objectStore(STORE).delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function dateIT(s){if(!s)return '—';const [y,m,d]=s.split('-');return `${d}/${m}/${y}`}
+async function render(){const items=(await all()).sort((a,b)=>(a.dueDate||'9999').localeCompare(b.dueDate||'9999'));const root=$('records');if(!items.length){root.innerHTML='<p class="muted">Nessuna scadenza salvata.</p>';return}root.innerHTML=items.map(x=>{const today=new Date().toISOString().slice(0,10);const late=x.dueDate&&x.dueDate<today;return `<article class="record"><h3>${esc(x.title)} <span class="tag">${esc(x.category)}</span></h3><p><b>Scadenza:</b> ${dateIT(x.dueDate)} ${late?'<span class="tag">Scaduta</span>':''}</p><p><b>Ente/fornitore:</b> ${esc(x.supplier||'—')} · <b>Importo:</b> ${x.amount?esc(x.amount)+' €':'—'}</p><p><b>Note:</b> ${esc(x.notes||'—')}</p><div class="actions"><button class="secondary" data-edit="${esc(x.id)}">Modifica</button><button class="danger" data-delete="${esc(x.id)}">Elimina</button>${x.fileName?`<span class="muted">Allegato: ${esc(x.fileName)}</span>`:''}</div></article>`}).join('')}
+function reset(){ $('recordForm').reset();$('recordId').value='';$('reminder').value=30;$('formTitle').textContent='Aggiungi una scadenza';$('attachment').value=''}
+function fill(x){$('recordId').value=x.id;$('category').value=x.category||'Documenti';$('title').value=x.title||'';$('dueDate').value=x.dueDate||'';$('reminder').value=x.reminder??30;$('issueDate').value=x.issueDate||'';$('supplier').value=x.supplier||'';$('vehicle').value=x.vehicle||'';$('amount').value=x.amount||'';$('notes').value=x.notes||'';$('formTitle').textContent='Modifica scheda';window.scrollTo({top:$('recordForm').getBoundingClientRect().top+window.scrollY-20,behavior:'smooth'})}
+$('recordForm').addEventListener('submit',async e=>{e.preventDefault();const id=$('recordId').value||crypto.randomUUID();const old=(await all()).find(x=>x.id===id)||{};const f=$('attachment').files[0];let attachment=old.attachment||null,fileName=old.fileName||'';if(f){attachment=await f.arrayBuffer();fileName=f.name}const item={...old,id,category:$('category').value,title:$('title').value.trim(),dueDate:$('dueDate').value,reminder:Number($('reminder').value||0),issueDate:$('issueDate').value,supplier:$('supplier').value.trim(),vehicle:$('vehicle').value.trim(),amount:$('amount').value,notes:$('notes').value.trim(),attachment,fileName,updatedAt:new Date().toISOString()};await put(item);reset();await render();alert('Scheda salvata.')});
+$('resetBtn').onclick=reset;
+$('records').addEventListener('click',async e=>{const edit=e.target.dataset.edit,remove=e.target.dataset.delete;if(edit){const x=(await all()).find(v=>v.id===edit);if(x)fill(x)}if(remove&&confirm('Vuoi eliminare questa scheda?')){await del(remove);await render()}});
+$('exportBtn').onclick=async()=>{const items=await all();const serial=items.map(x=>({...x,attachment:x.attachment?Array.from(new Uint8Array(x.attachment)):null}));const blob=new Blob([JSON.stringify({app:'Scadenze Casa & Auto',version:1,records:serial})],{type:'application/json'});download(blob,'backup-scadenze-casa-auto.json')};
+$('importBtn').onclick=()=>$('backupFile').click();
+$('backupFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.records))throw Error('Backup non valido');if(!confirm('Il ripristino aggiunge le schede del backup a quelle presenti. Continuare?'))return;for(const x of data.records){if(x.attachment&&Array.isArray(x.attachment))x.attachment=new Uint8Array(x.attachment).buffer;await put(x)}await render();alert('Backup ripristinato.')}catch(err){alert('Non riesco a leggere il backup: '+err.message)}e.target.value=''};
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}
+function preprocess(source){const c=document.createElement('canvas'),ctx=c.getContext('2d');const w=source.width||source.videoWidth,h=source.height||source.videoHeight,scale=Math.min(2,2400/Math.max(w,h));c.width=Math.round(w*scale);c.height=Math.round(h*scale);ctx.drawImage(source,0,0,c.width,c.height);const im=ctx.getImageData(0,0,c.width,c.height),d=im.data;for(let i=0;i<d.length;i+=4){let v=.299*d[i]+.587*d[i+1]+.114*d[i+2];v=Math.max(0,Math.min(255,(v-128)*1.45+128));d[i]=d[i+1]=d[i+2]=v}ctx.putImageData(im,0,0);return c}
+function dateCandidates(text){const out=[];const re=/\b(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})\b|\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/g;let m;while((m=re.exec(text))){let y,mo,d;if(m[4]){y=+m[4];mo=+m[5];d=+m[6]}else{d=+m[1];mo=+m[2];y=+m[3];if(y<100)y+=y<50?2000:1900}const dt=new Date(y,mo-1,d);if(dt.getFullYear()===y&&dt.getMonth()===mo-1&&dt.getDate()===d)out.push({iso:`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`,raw:m[0]})}return [...new Map(out.map(x=>[x.iso,x])).values()]}
+$('readBtn').onclick=async()=>{const f=$('documentFile').files[0];if(!f){alert('Seleziona prima una foto o un PDF.');return}if(!window.Tesseract){$('ocrStatus').textContent='Libreria OCR non disponibile. Controlla la connessione e ricarica la pagina.';return}const btn=$('readBtn');btn.disabled=true;$('progress').classList.remove('hidden');$('bar').style.width='0%';$('ocrText').value='';try{let images=[];if(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')){if(!window.pdfjsLib)throw Error('Lettore PDF non disponibile');pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;for(let n=1;n<=Math.min(pdf.numPages,5);n++){const page=await pdf.getPage(n),vp=page.getViewport({scale:1.7}),canvas=document.createElement('canvas');canvas.width=vp.width;canvas.height=vp.height;await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;images.push(canvas)}}else{const img=new Image();img.src=URL.createObjectURL(f);await img.decode();images=[preprocess(img)];URL.revokeObjectURL(img.src)}$('ocrStatus').textContent='Avvio lettura...';const worker=await Tesseract.createWorker('ita',1,{logger:m=>{if(m.status==='recognizing text'){$('bar').style.width=Math.round(m.progress*100)+'%';$('ocrStatus').textContent='Lettura in corso: '+Math.round(m.progress*100)+'%'}}});let texts=[];for(let i=0;i<images.length;i++){const result=await worker.recognize(preprocess(images[i]));texts.push(result.data.text);if(images.length>1)$('ocrStatus').textContent=`Pagina ${i+1} di ${images.length} letta`}await worker.terminate();const textAll=texts.join('\n\n--- Pagina successiva ---\n\n');$('ocrText').value=textAll;$('ocrStatus').textContent='Lettura terminata. Controlla il testo e i dati proposti.';suggest(textAll)}catch(err){$('ocrStatus').textContent='Errore durante la lettura: '+err.message;$('ocrText').value=''}finally{btn.disabled=false}};
+function suggest(t){const low=t.toLowerCase();if(/assicur|polizza/.test(low))$('category').value='Assicurazione';else if(/caldaia|manutenzione termica/.test(low))$('category').value='Caldaia';else if(/condizionatore|climatizzatore/.test(low))$('category').value='Condizionatore';else if(/targa|veicolo|automobile|revisione/.test(low))$('category').value='Auto';else $('category').value='Documenti';if(!$('title').value){const lines=t.split(/\n/).map(s=>s.trim()).filter(Boolean);$('title').value=lines.slice(0,2).join(' ').slice(0,90)||'Documento';}const dates=dateCandidates(t);if(dates.length){const due=dates.find(x=>/scadenz|valido fino|entro il|rinnovo|pagare entro/i.test(t.slice(Math.max(0,t.indexOf(x.raw)-70),t.indexOf(x.raw)+70)))||dates[dates.length-1];$('dueDate').value=due.iso;if(dates.length>1)$('issueDate').value=dates[0].iso}const amount=t.match(/(?:€|EUR)\s?([\d.]+(?:,\d{2})?)|([\d.]+,\d{2})\s?€/i);if(amount)$('amount').value=(amount[1]||amount[2]).replace(/\./g,'').replace(',','.');const issuer=t.match(/(?:emesso da|rilasciato da|ente|compagnia|fornitore)\s*[:\-]?\s*([^\n]{3,60})/i);if(issuer)$('supplier').value=issuer[1].trim()}
+$('clearOcr').onclick=()=>{$('ocrText').value='';$('ocrStatus').textContent='';$('documentFile').value='';$('bar').style.width='0%';$('progress').classList.add('hidden')};
+openDb().then(render).catch(e=>{$('records').innerHTML='<p class="muted">Errore nell’archivio locale: '+esc(e.message)+'</p>'});
+})();
+</script>
+</body>
+</html>
